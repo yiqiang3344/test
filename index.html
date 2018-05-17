@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>jquery+css3实现元素颤抖特效 - 站长素材</title>
+    <script src="js/jquery.min.js"></script>
+    <link href="css/shake.css" rel="stylesheet" media="all">
+</head>
+
+<body>
+    <div id="wrapper">
+        <section>
+            <p class="shake shake-slow">shake-slow</p>
+        </section>
+    </div>
+    <div>
+        <button class="js_no">不抖</button>
+        <button class="js_yes">抖</button>
+    </div>
+    <script>
+        $('.js_no').click(function(){
+            $('.shake').addClass('stop');
+        });
+        $('.js_yes').click(function(){
+            $('.shake').removeClass('stop');
+        });
+    </script>
+</body>
+</html>
