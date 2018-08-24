@@ -6,7 +6,7 @@
  * Time: 下午2:55
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 /**
@@ -32,7 +32,7 @@ namespace p2p;
  */
 class Loan extends Base
 {
-    use Error;
+    const PAYMENT_METHOD_EQUAL_PRINCIPAL = '等额本息';
 
     public $last_lend_pos = 0;
 
@@ -57,30 +57,42 @@ class Loan extends Base
      */
     public function lend(TradeOrder $order)
     {
+        $coupon = null;
+        if (mt_rand() / mt_getrandmax() * 100 > 50) {
+            $coupon = new Coupon([
+                'id' => 1,
+                'add_rate' => 0.01,
+            ]);
+        }
+
         //生成投标记录
         $lendRecord = new LendRecord([
-            'trade_number' => '', //交易单号
-            'pay_number' => '', //支付单号
-            'loan_number' => '', //标的信息
-            'lender' => '', //投资人
+            'trade_number' => $order->trade_number, //交易单号
+            'pay_number' => $order->pay_number, //支付单号
+            'loan_number' => $order->loan_number, //标的信息
+            'lender' => $order->user_id, //投资人
             'amount' => $order->amount, //投资本金
-            'coupon_id' => '', //优惠券ID
-            'add_rate' => '', //加息
-            'interest' => '', //应回利息
-            'fee' => '', //应回费用
+            'coupon_id' => $coupon ? $coupon->id : 0, //优惠券ID
+            'rate' => $this->protocol_rate, //加息
+            'add_rate' => $coupon ? $coupon->add_rate : 0, //加息
+            'interest' => 0, //应回利息
+            'fee' => 0, //应回费用
             'status' => 'none', //状态
-            'paid_principal' => '', //已回本金
-            'paid_interest' => '', //已回利息
-            'paid_fee' => '', //已回费用
-            'created_time' => '', //创建时间
+            'paid_principal' => 0, //已回本金
+            'paid_interest' => 0, //已回利息
+            'paid_fee' => 0, //已回费用
+            'created_time' => date('Y-m-d H:i:s'), //创建时间
         ]);
 
         $lendRecord->loan = $order->loan;
         $lendRecord->order = $order;
 
+        \Output::$list['lendRecord'] = $lendRecord;
+
         if (false === $lendRecord->lend()) {
             return $this->buildError($lendRecord);
         }
+
         return true;
     }
 
@@ -103,5 +115,42 @@ class Loan extends Base
             ]);
         }
         return $list;
+    }
+
+    /**
+     * 计息
+     * @param $payment_method
+     * @param $rate
+     * @param $period
+     * @param $amount
+     * @return array
+     */
+    public static function calculateInterest($payment_method, $rate, $period, $amount)
+    {
+        $repayList = [];
+        $repay = [
+            'period' => 0,
+            'amount' => 0,
+            'interest' => 0,
+            'fee' => 0,
+        ];
+        if ($payment_method == Loan::PAYMENT_METHOD_EQUAL_PRINCIPAL) {
+            $totalInterest = bcdiv($amount * $rate, 12, 2);
+            $principal = bcdiv($amount, $period, 2);
+            $interest = bcdiv($totalInterest, $period, 2);
+            $sumPrincipal = $sumInterest = 0;
+            for ($i = 1; $i <= $period; $i++) {
+                $tmpRepay = $repay;
+                if ($i == $period) {
+                    $tmpRepay['principal'] = $amount - $sumPrincipal;
+                    $tmpRepay['interest'] = $totalInterest - $sumInterest;
+                } else {
+                    $sumPrincipal += $tmpRepay['principal'] = $principal;
+                    $sumInterest += $tmpRepay['interest'] = $interest;
+                }
+                $repayList[] = $tmpRepay;
+            }
+        }
+        return $repayList;
     }
 }

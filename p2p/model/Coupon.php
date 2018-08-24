@@ -6,12 +6,13 @@
  * Time: 下午2:55
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 /**
  * Class Coupon
  * @package p2p
+ * @property int id
  * @property float add_rate
  */
 class Coupon extends Base

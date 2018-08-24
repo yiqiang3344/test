@@ -6,7 +6,7 @@
  * Time: 下午2:55
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 class CapitalRecord extends Base

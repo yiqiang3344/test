@@ -6,7 +6,7 @@
  * Time: 下午2:57
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 class RepaymentRecord

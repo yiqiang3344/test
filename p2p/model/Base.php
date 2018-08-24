@@ -6,7 +6,7 @@
  * Time: 下午2:55
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 Class Base
@@ -28,5 +28,10 @@ Class Base
     public function __get($name)
     {
         return $this->attributes[$name];
+    }
+
+    public function getAttributes()
+    {
+        return $this->attributes;
     }
 }

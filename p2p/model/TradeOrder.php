@@ -6,7 +6,7 @@
  * Time: 下午2:55
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 /**
@@ -14,6 +14,19 @@ namespace p2p;
  * @package p2p
  * @property Loan $loan
  * @property Lender $lender
+ * @property int $user_id 用户id
+ * @property string $trade_number 交易单号
+ * @property string $pay_number 支付单号
+ * @property string $type 交易类型
+ * @property int $amount 金额
+ * @property string $bank 银行
+ * @property string $bank_branch 支行
+ * @property string $bank_card_number 银行卡
+ * @property string $bank_mobile 预留手机号
+ * @property string $loan_number 标的信息
+ * @property string $remark 备注
+ * @property string $status 状态
+ * @property string $created_time 创建时间
  */
 class TradeOrder extends Base
 {
@@ -62,6 +75,8 @@ class TradeOrder extends Base
 
         $this->status = self::STATUS_SUCCESS;
 
+
+        !isset(\Output::$list['capitalRecordList']) && (\Output::$list['capitalRecordList'] = []);
         //生成资金记录
         $capitalRecord = new CapitalRecord([
             'user_id' => $this->user_id, //用户id
@@ -74,7 +89,7 @@ class TradeOrder extends Base
             'is_frozen' => 1, //是否冻结
             'created_time' => date('Y-m-d H:i:s'), //创建时间
         ]);
-        \Output::$list[] = $capitalRecord;
+        \Output::$list['capitalRecordList'][] = $capitalRecord;
 
         //不同的交易做不同的后续处理
         if ($this->type == self::TYPE_LEND) {

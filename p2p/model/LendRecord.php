@@ -6,7 +6,7 @@
  * Time: 下午2:56
  */
 
-namespace p2p;
+namespace p2p\model;
 
 
 /**
@@ -15,11 +15,25 @@ namespace p2p;
  * @property Loan $loan
  * @property TradeOrder $order
  * @property Coupon $coupon
+ * @property int $id
+ * @property string $trade_number 交易单号
+ * @property string $pay_number 支付单号
+ * @property string $loan_number 标的信息
+ * @property int $lender 投资人
+ * @property int $amount 投资本金
+ * @property int $coupon_id 优惠券ID
+ * @property float $rate 年华收益率
+ * @property float $add_rate 加息
+ * @property int $interest 应回利息
+ * @property int $fee 应回费用
+ * @property string $status 状态
+ * @property int $paid_principal 已回本金
+ * @property int $paid_interest 已回利息
+ * @property int $paid_fee 已回费用
+ * @property string $created_time 创建时间
  */
 class LendRecord extends Base
 {
-    use Error;
-
     const STATUS_NONE = 'none';
     const STATUS_SUCCESS = 'success';
     const STATUS_ABORTION = 'abortion';
@@ -71,20 +85,29 @@ class LendRecord extends Base
         $loan->last_lend_pos = $pos;
 
         //生成投资明细
+        \Output::$list['lendDetailList'] = [];
+        $id = 1;
         foreach ($lendRecordMap as $k => $value) {
             $m = new LendDetail([
+                'id' => $id++,
                 'trade_number' => $this->order->trade_number,
                 'loan_number' => $this->loan->loan_number,
                 'lender' => $this->order->user_id,
                 'loaner' => $k,
                 'rate' => $this->loan->protocol_rate,
-                'add_rate' => $this->coupon ? $this->coupon->add_rate : 0,
+                'add_rate' => isset($this->coupon) ? $this->coupon->add_rate : 0,
                 'amount' => $value,
                 'interest' => '',
                 'fee' => '',
-                'status' => '',
-                'created_time' => '',
+                'status' => self::STATUS_NONE,
+                'created_time' => date('Y-m-d H:i:s'),
             ]);
+            $m->lendRecord = $this;
+            $m->generateCapitalRecord();
+            $m->calculateInterest();
+            $this->interest += $m->interest;
+            $this->fee += $m->fee;
+            \Output::$list['lendDetailList'][] = $m;
         }
 
         return true;
