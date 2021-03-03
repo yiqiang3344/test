@@ -1,40 +1,56 @@
-<?php
-require_once 'jpgraph/jpgraph.php';
-require_once 'jpgraph/jpgraph_line.php';
+<?php // content="text/plain; charset=utf-8"
+require_once ('jpgraph/jpgraph.php');
+require_once ('jpgraph/jpgraph_line.php');
 
-//创建画布,大小600*400
-$graph = new Graph(600, 400);
+$ydata = array(11,3,8,12,5,1,9,13,5,7);
+$y2data = array(354,200,265,99,111,91,198,225,293,251);
 
-//设置横纵坐标刻度样式
-/*
- * line直线
- * text文本
- * int整数
- * log对数
- * */
-//横坐标text 纵坐标int
-$aAxisType = 'textint';
-$graph->SetScale($aAxisType);
+// Create the graph and specify the scale for both Y-axis
+$graph = new Graph(300,240);
+$graph->clearTheme();
+$graph->SetScale("textlin");
+$graph->SetY2Scale("lin");
+$graph->SetShadow();
 
-//设置统计图的标题,英文正常使用，中文会出现乱码
-//$graph->title->Set('this is a test');
-$graph->title->SetFont(FF_CHINESE);
-$graph->title->Set("慕课网");
+// Adjust the margin
+$graph->img->SetMargin(40,40,20,70);
 
-//根据数据画图
-$data = array(0 => 10, 1 => 20, 2 => 30, 3 => 40, 4 => 50, 5 => 12, 6 => 38, 7 => 55, 8 => 100, 9 => 120, 10 => 30, 11 => 54);
+// Create the two linear plot
+$lineplot=new LinePlot($ydata);
+$lineplot2=new LinePlot($y2data);
 
-//实例化画X-Y的类
-$linePlot = new LinePlot($data);
+// Add the plot to the graph
+$graph->Add($lineplot);
+$graph->AddY2($lineplot2);
+$lineplot2->SetColor("orange");
+$lineplot2->SetWeight(2);
 
-//设置图例
-$linePlot->SetLegend('中文测试');
+// Adjust the axis color
+$graph->y2axis->SetColor("orange");
+$graph->yaxis->SetColor("blue");
 
-//将统计图添加到画布上
-$graph->Add($linePlot);
+$graph->title->Set("Example 6.1");
+$graph->xaxis->title->Set("X-title");
+$graph->yaxis->title->Set("Y-title");
 
-//设置统计图的颜色，一定要在添加到画布之后再设置
-$linePlot->SetColor('red');
+$graph->title->SetFont(FF_FONT1,FS_BOLD);
+$graph->yaxis->title->SetFont(FF_FONT1,FS_BOLD);
+$graph->xaxis->title->SetFont(FF_FONT1,FS_BOLD);
 
-//画出整福统计图，输出画布
+// Set the colors for the plots
+$lineplot->SetColor("blue");
+$lineplot->SetWeight(2);
+$lineplot2->SetColor("orange");
+$lineplot2->SetWeight(2);
+
+// Set the legends for the plots
+$lineplot->SetLegend("Plot 1");
+$lineplot2->SetLegend("Plot 2");
+
+// Adjust the legend position
+$graph->legend->SetLayout(LEGEND_HOR);
+$graph->legend->Pos(0.4,0.95,"center","bottom");
+
+// Display the graph
 $graph->Stroke();
+?>
