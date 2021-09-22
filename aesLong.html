@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+    <title>JavaScript AES Encryption</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/crypto-js.min.js"></script>
+    <script src="js/md5.js"></script>
+    <script type="text/javascript">
+        function encryptByAES(string, key, ivstr) {
+            return CryptoJS.AES.encrypt(string, CryptoJS.enc.Utf8.parse(key), {
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7,
+                iv: CryptoJS.enc.Utf8.parse(ivstr)
+            }).toString();
+        }
+
+        function decryptByAES(string, key, ivstr) {
+            return CryptoJS.AES.decrypt(string, CryptoJS.enc.Utf8.parse(key), {
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7,
+                iv: CryptoJS.enc.Utf8.parse(ivstr)
+            }).toString(CryptoJS.enc.Utf8);
+        }
+
+        function run(message, aseKey, num, iv) {
+            for (var i = 0; i < num; i++) {
+                var encrypt = encryptByAES(message, aseKey, iv);
+                console.log(encrypt);
+
+                var decrypt = decryptByAES(encrypt, aseKey, iv);
+                // console.log(decrypt);
+
+                if (decrypt != message) {
+                    console.log(message.length + ' try ' + num + ' Something went wrong ....:' + decrypt)
+                    return;
+                }
+            }
+            console.log(message.length + ' try ' + num + ' times, success.')
+        }
+
+        function generateIv() {
+            var ret = [];
+            for (var i = 0; i < 16; i++) {
+                ret.push(Math.floor(Math.random() * 10));
+            }
+            return ret.join('');
+        }
+
+        // Call this code when the page is done loading.
+        $(function () {
+            var str = '';
+            var jwttoken = 'eyJ2ZXJzaW9uIjoxLCJ0eXAiOiJKV1QiLCJOiJIUzI1NiJ9.eyJ1aWQiOjEsIm12341234FwcCI6ImJhY2tlbmQiLCJleHAiOjE2MjY0NDQ5NDl9.AYBA3h3GuAfSzWAAwqk-wmMu8kq3nB3G3-SAGhm7prs';
+            var iv = '1234567812345678';
+            var key = hex_md5(jwttoken).substr(0, 16);
+            console.log(key, iv);
+            while (str.length < 200) {
+                str += '超长的中文测试一下啊啊啊啊啊啊超长的中文测试一下啊啊啊啊啊啊超长的中文测试一下啊啊啊啊啊啊超长的中文测试一下啊啊啊啊啊啊超长的中文测试一下啊啊啊啊啊啊超长的中文测试一下啊啊啊啊啊啊测试一下啊啊啊啊啊啊';
+                run(str, key, 1, iv);
+            }
+        });
+    </script>
+</head>
+<body>
+<label for="input">Text to encrypt:</label><br/>
+<textarea id="input" name="input" type="text" rows=4 cols=70></textarea><br/>
+<input id="testme" type="button" value="Test Me!!!"/><br/>
+</body>
+</html>

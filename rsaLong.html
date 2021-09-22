@@ -5,161 +5,59 @@
     <script src="js/jquery.min.js"></script>
     <script src="js/jsencrypt.min.js"></script>
     <script src="js/base64.min.js"></script>
-    <!--    <script src="https://cdn.jsdelivr.net/npm/js-base64@3.7.1/base64.min.js"></script>-->
     <script type="text/javascript">
-        // function string2Bin(str) {
-        //     var result = [];
-        //     for (var i = 0; i < str.length; i++) {
-        //         result.push(str.charCodeAt(i));
-        //     }
-        //     return result;
-        // }
-        //
-        //
-        // function bin2String(array) {
-        //     return String.fromCharCode.apply(String, array);
-        // }
+        function run(str, pubKey, priKey, num) {
+            for (var i = 0; i < num; i++) {
+                var encrypt = new JSEncrypt();
+                encrypt.setPublicKey(pubKey);
+                var encrypted = encrypt.encryptLong(str);
+                // console.log(1, encrypted);
 
-        // //十六进制转字节
-        // function hexToBytes(hex) {
-        //     for (var bytes = [], c = 0; c < hex.length; c += 2)
-        //         bytes.push(parseInt(hex.substr(c, 2), 16));
-        //     return bytes;
-        // }
-        //
-        // // 字节转十六进制
-        // function bytesToHex(bytes) {
-        //     for (var hex = [], i = 0; i < bytes.length; i++) {
-        //         hex.push((bytes[i] >>> 4).toString(16));
-        //         hex.push((bytes[i] & 0xF).toString(16));
-        //     }
-        //     return hex.join("");
-        // }
-        //
-        // JSEncrypt.prototype.encryptLong = function (string) {
-        //     var k = this.getKey();
-        //     try {
-        //         var lt = "";
-        //         var ct = "";
-        //         //RSA每次加密117bytes，需要辅助方法判断字符串截取位置
-        //         //1.获取字符串截取点
-        //         var bytes = new Array();
-        //         bytes.push(0);
-        //         var byteNo = 0;
-        //         var len, c;
-        //         len = string.length;
-        //         var temp = 0;
-        //         for (var i = 0; i < len; i++) {
-        //             c = string.charCodeAt(i);
-        //             if (c >= 0x010000 && c <= 0x10FFFF) {
-        //                 byteNo += 4;
-        //             } else if (c >= 0x000800 && c <= 0x00FFFF) {
-        //                 byteNo += 3;
-        //             } else if (c >= 0x000080 && c <= 0x0007FF) {
-        //                 byteNo += 2;
-        //             } else {
-        //                 byteNo += 1;
-        //             }
-        //             if ((byteNo % 117) >= 114 || (byteNo % 117) == 0) {
-        //                 if (byteNo - temp >= 114) {
-        //                     bytes.push(i);
-        //                     temp = byteNo;
-        //                 }
-        //             }
-        //         }
-        //         //2.截取字符串并分段加密
-        //         if (bytes.length > 1) {
-        //             for (var i = 0; i < bytes.length - 1; i++) {
-        //                 var str;
-        //                 if (i == 0) {
-        //                     str = string.substring(0, bytes[i + 1] + 1);
-        //                 } else {
-        //                     str = string.substring(bytes[i] + 1, bytes[i + 1] + 1);
-        //                 }
-        //                 var t1 = k.encrypt(str);
-        //                 ct += t1;
-        //             }
-        //             ;
-        //             if (bytes[bytes.length - 1] != string.length - 1) {
-        //                 var lastStr = string.substring(bytes[bytes.length - 1] + 1);
-        //                 ct += k.encrypt(lastStr);
-        //             }
-        //             return hexToBytes(ct);
-        //         }
-        //         var t = k.encrypt(string);
-        //         var y = hexToBytes(t);
-        //         return y;
-        //     } catch (ex) {
-        //         return false;
-        //     }
-        // };
-        //
-        // JSEncrypt.prototype.decryptLong = function (string) {
-        //     var k = this.getKey();
-        //     var MAX_DECRYPT_BLOCK = 128;
-        //     try {
-        //         var ct = "";
-        //         var t1;
-        //         var bufTmp;
-        //         var hexTmp;
-        //         var str = bytesToHex(string);
-        //         var buf = hexToBytes(str);
-        //         var inputLen = buf.length;
-        //         //开始长度
-        //         var offSet = 0;
-        //         //结束长度
-        //         var endOffSet = MAX_DECRYPT_BLOCK;
-        //
-        //         //分段加密
-        //         while (inputLen - offSet > 0) {
-        //             if (inputLen - offSet > MAX_DECRYPT_BLOCK) {
-        //                 bufTmp = buf.slice(offSet, endOffSet);
-        //                 hexTmp = bytesToHex(bufTmp);
-        //                 t1 = k.decrypt(hexTmp);
-        //                 ct += t1;
-        //
-        //             } else {
-        //                 bufTmp = buf.slice(offSet, inputLen);
-        //                 hexTmp = bytesToHex(bufTmp);
-        //                 t1 = k.decrypt(hexTmp);
-        //                 ct += t1;
-        //
-        //             }
-        //             offSet += MAX_DECRYPT_BLOCK;
-        //             endOffSet += MAX_DECRYPT_BLOCK;
-        //         }
-        //         return ct;
-        //     } catch (ex) {
-        //         return false;
-        //     }
-        // };
+                var decrypt = new JSEncrypt();
+                decrypt.setPrivateKey(priKey);
+                var uncrypted = decrypt.decryptLong(encrypted);
+                // console.log(2, uncrypted);
+
+                if (uncrypted != str) {
+                    console.log(str.length + ' try ' + num + ' Something went wrong ....:' + uncrypted)
+                    return;
+                }
+            }
+            console.log(str.length + ' try ' + num + ' times, success.')
+        }
 
         // Call this code when the page is done loading.
         $(function () {
             // Run a quick encryption/decryption when they click.
-            $('#testme').click(function () {
-                // Encrypt with the public key...
-                var encrypt = new JSEncrypt();
-                encrypt.setPublicKey($('#pubkey').val());
-                var encrypted = encrypt.encryptLong($('#input').val());
-                // var base64Encrypted = Base64.encode(bin2String(encrypted))
-                console.log(1, encrypted);
+            // $('#testme').click(function () {
+            //     // Encrypt with the public key...
+            //     var encrypt = new JSEncrypt();
+            //     encrypt.setPublicKey($('#pubkey').val());
+            //     var encrypted = encrypt.encryptLong($('#input').val());
+            //     // var base64Encrypted = Base64.encode(bin2String(encrypted))
+            //     console.log(1, encrypted);
+            //
+            //     // Decrypt with the private key...
+            //     var decrypt = new JSEncrypt();
+            //     decrypt.setPrivateKey($('#privkey').val());
+            //     // var base64Uncrypted = Base64.decode(base64Encrypted);
+            //     // var uncrypted = decrypt.decryptLong(string2Bin(base64Uncrypted));
+            //     var uncrypted = decrypt.decryptLong(encrypted);
+            //     console.log(2, uncrypted);
+            //
+            //     // Now a simple check to see if the round-trip worked.
+            //     if (uncrypted == $('#input').val()) {
+            //         alert('It works!!!');
+            //     } else {
+            //         alert('Something went wrong....');
+            //     }
+            // });
 
-                // Decrypt with the private key...
-                var decrypt = new JSEncrypt();
-                decrypt.setPrivateKey($('#privkey').val());
-                // var base64Uncrypted = Base64.decode(base64Encrypted);
-                // var uncrypted = decrypt.decryptLong(string2Bin(base64Uncrypted));
-                var uncrypted = decrypt.decryptLong(encrypted);
-                console.log(2, uncrypted);
-
-                // Now a simple check to see if the round-trip worked.
-                if (uncrypted == $('#input').val()) {
-                    alert('It works!!!');
-                } else {
-                    alert('Something went wrong....');
-                }
-            });
+            var str = '';
+            while (str.length < 1000) {
+                str += '1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111';
+                run(str, $('#pubkey').val(), $('#privkey').val(), 50);
+            }
         });
     </script>
 </head>
@@ -189,8 +87,7 @@ nMsF+sSFLnBpTvWhVsNc3NlhIU4OSrlqonbwsxNJmMVp1cKA8QV4xS+KV3bmHYuq
 NgOkaxKK9ZSbrL8qiwIDAQAB
 -----END PUBLIC KEY-----</textarea><br/>
 <label for="input">Text to encrypt:</label><br/>
-<textarea id="input" name="input" type="text" rows=4 cols=70>{"event_id":"1002928","event_time":"1631935293166","event_type":"picInfo","photo_info":[{"name":"中文测试中文测试中文测试中文测试中文测试中文测试.png","date":"2021-08-30 17:53:14","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-30-17-53-13-22.png"},{"name":"Screenshot_2021-08-30-17-42-06-50.png","date":"2021-08-30 17:42:08","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-30-17-42-06-50.png"},{"name":"Screenshot_2021-08-27-15-38-42-55.png","date":"2021-08-27 15:38:43","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-27-15-38-42-55.png"},{"name":"Screenshot_2021-08-25-20-20-01-02.png","date":"2021-08-25 20:20:03","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-25-20-20-01-02.png"},{"name":"Screenshot_2021-08-20-14-30-19-23.png","date":"2021-08-20 14:30:20","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-20-14-30-19-23.png"},{"name":"Screenshot_2021-08-20-14-29-09-17.png","date":"2021-08-20 14:29:10","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-20-14-29-09-17.png"},{"name":"Screenshot_2021-08-20-14-29-04-10.png","date":"2021-08-20 14:29:06","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-20-14-29-04-10.png"},{"name":"Screenshot_2021-08-20-14-28-56-88.png","date":"2021-08-20 14:28:59","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-20-14-28-56-88.png"},{"name":"Screenshot_2021-08-20-14-28-46-93.png","date":"2021-08-20 14:28:48","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-20-14-28-46-93.png"},{"name":"Screenshot_2021-08-20-14-28-40-32.png","date":"2021-08-20 14:28:42","source":"/storage/emulated/0/DCIM/Screenshots/Screenshot_2021-08-20-14-28-40-32.png"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-19-16-13-15-802.jpg","FNumber":"1.7","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"3456","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"4803","Flash":"16","SceneType":"?","ISOSpeedRatings":"92","FocalLength":"410/100","SceneCaptureType":"0","latitude":"","name":"2021-08-19-16-13-15-802.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"4608","date":"2021-08-19 16:13:16","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:19 16:13:16"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-19-16-13-44-739.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"4581","Flash":"16","SceneType":"?","ISOSpeedRatings":"384","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-19-16-13-44-739.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-19 16:13:45","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:19 16:13:45"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-13-16-52-50-898.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5559","Flash":"16","SceneType":"?","ISOSpeedRatings":"472","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-13-16-52-50-898.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-13 16:52:51","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:13 16:52:51"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-13-29-47-664.jpg","FNumber":"1.7","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"3456","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"3161","Flash":"16","SceneType":"?","ISOSpeedRatings":"104","FocalLength":"410/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-13-29-47-664.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"4608","date":"2021-08-12 13:29:48","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 13:29:48"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-13-30-05-015.jpg","FNumber":"1.7","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"3456","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"4658","Flash":"16","SceneType":"?","ISOSpeedRatings":"101","FocalLength":"410/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-13-30-05-015.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"4608","date":"2021-08-12 13:30:05","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 13:30:05"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-13-31-17-038.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5239","Flash":"16","SceneType":"?","ISOSpeedRatings":"395","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-13-31-17-038.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 13:31:17","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 13:31:17"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-13-31-45-581.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5444","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-13-31-45-581.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 13:31:46","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 13:31:46"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-26-35-832.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5252","Flash":"16","SceneType":"?","ISOSpeedRatings":"362","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-26-35-832.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:26:36","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:26:36"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-33-54-998.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5778","Flash":"16","SceneType":"?","ISOSpeedRatings":"407","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-33-54-998.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:33:55","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:33:55"},{"source":"/storage/emulated/0/Android/media/com.onedana.app/One Dana/2021-08-12-14-34-34-593.jpg","FNumber":"2.0","Make":"OPPO","Software":"msm8953_64-user 7.1.1 NMF26F eng.root.20181221.004030 dev-keys","ImageLength":"4608","FlashpixVersion":"0100","Model":"OPPO R9s","longitude":"","JPEGInterchangeFormatLength":"5164","Flash":"16","SceneType":"?","ISOSpeedRatings":"432","FocalLength":"357/100","SceneCaptureType":"0","latitude":"","name":"2021-08-12-14-34-34-593.jpg","WhiteBalance":"0","Compression":"6","JPEGInterchangeFormat":"919","ImageWidth":"3456","date":"2021-08-12 14:34:35","Orientation":"0","MeteringMode":"1","DateTime":"2021:08:12 14:34:35"}],"biz_type":"identify_api","mobile":"18612345698","user_id":"111111113483","token":"eyJ2ZXJzaW9uIjoxLCJ1aWQiOiIxODYxMjM0NTY5OCIsIm1vYmlsZSI6IjE4NjEyMzQ1Njk4IiwiYXBwIjoieHlmIiwidHlwIjoiSldUIiwiYWxnIjoiSFMyNTYifQ.eyJ1aWQiOiIxODYxMjM0NTY5OCIsImFwcCI6Inh5ZiIsImV4cCI6MTYzMjUzOTk4OCwibW9iaWxlIjoiMTg2MTIzNDU2OTgiLCJjcmVkaXRVc2VySWQiOiIxMTExMTExMTM0ODMiLCJjcmVkaXRVc2VyVXNlcklkIjoxMTExMTExMTM0ODN9.WarMmyXG0MjxpRuo-InGpJfNJSHwyHj5hBDdkWmueoI","device_id":"2019070924a265e5d","source_type":"client","os":"android","channel":"huawei","version_code":"5.0.0-TEST","utm_source":"","app":"xyf01","inner_app":"xyf01","created_time":"2021-09-18 11:21:33"}</textarea><br/>
-<!--<textarea id="input" name="input" type="text" rows=4 cols=70>中文测试一下中文测试一下中文测试一下中文测试一下中文测试一下</textarea><br/>-->
+<textarea id="input" name="input" type="text" rows=4 cols=70></textarea><br/>
 <input id="testme" type="button" value="Test Me!!!"/><br/>
 </body>
 </html>
